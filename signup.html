@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sign Up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f4f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #fff7fb;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      width: 320px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    .row {
+      text-align: left;
+      font-size: 14px;
+      margin: 8px 0;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 5px;
+      background: #6c3bff;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .small-text {
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    .small-text a {
+      color: #6c3bff;
+      text-decoration: none;
+    }
+    #suMsg {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #e53935;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>SIGN UP</h2>
+
+    <form id="signupForm">
+      <input type="text" id="suFullname" placeholder="Fullname" required />
+      <input type="text" id="suUsername" placeholder="Username" required />
+      <input type="email" id="suEmail" placeholder="Email" required />
+      <input type="password" id="suPassword" placeholder="Password" required />
+      <input type="password" id="suConfirmPassword" placeholder="Confirm Password" required />
+
+      <div class="row">
+        <label>
+          <input type="checkbox" id="suRemember" />
+          Remember me
+        </label>
+      </div>
+
+      <button type="submit">Login</button>
+    </form>
+
+    
+    <p class="small-text">
+      Already have an account?
+      <a href="login.html">Login here</a>
+    </p>
+
+    <p id="suMsg"></p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      sendEmailVerification 
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      setDoc, 
+      serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDXmcoM0Sk3lJInvJi2mGWeXTkkOiA00ZU",
+      authDomain: "siaa-ff9f4.firebaseapp.com",
+      projectId: "siaa-ff9f4",
+      storageBucket: "siaa-ff9f4.firebasestorage.app",
+      messagingSenderId: "368180748618",
+      appId: "1:368180748618:web:eb7a6283acbb749e54e1b3",
+      measurementId: "G-3DD027B5P7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const form = document.getElementById("signupForm");
+    const msg  = document.getElementById("suMsg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const fullname = document.getElementById("suFullname").value.trim();
+      const username = document.getElementById("suUsername").value.trim();
+      const email    = document.getElementById("suEmail").value.trim();
+      const password = document.getElementById("suPassword").value;
+      const confirm  = document.getElementById("suConfirmPassword").value;
+
+      // simple validations
+      if (password !== confirm) {
+        msg.textContent = "Passwords do not match.";
+        return;
+      }
+
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+        // send verification email
+        await sendEmailVerification(cred.user);
+
+        // save extra info in Firestore
+        await setDoc(doc(db, "users", cred.user.uid), {
+          fullname,
+          username,
+          email,
+          createdAt: serverTimestamp(),
+        });
+
+        msg.style.color = "green";
+        msg.textContent = "Account created. Check your email and verify before logging in.";
+        form.reset();
+      } catch (err) {
+        msg.style.color = "#e53935";
+        msg.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>
+

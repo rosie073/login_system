@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f4f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #fff7fb;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      width: 320px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    .row {
+      text-align: left;
+      font-size: 14px;
+      margin: 8px 0;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 5px;
+      background: #6c3bff;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .small-text {
+      margin-top: 10px;
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .small-text a {
+      color: #6c3bff;
+      text-decoration: none;
+    }
+    .margin-tb {
+      margin: 12px 0;
+    }
+    #liMsg {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #e53935;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>LOGIN</h2>
+
+    <form id="loginForm">
+      <input type="email" id="liEmail" placeholder="Email" required />
+      <input type="password" id="liPassword" placeholder="Password" required />
+
+      <div class="row">
+        <label>
+          <input type="checkbox" id="liRemember" />
+          Remember me
+        </label>
+      </div>
+
+      <button type="submit">Login</button>
+    </form>
+
+    <p class="small-text">
+      <a href="resetpassword.html">Forgot password?</a>
+    </p>
+    <hr class="margin-tb"> </hr>
+
+    <p class="small-text">
+      Don't have an account?
+      <a href="signup.html">Sign up here</a>
+    </p>
+
+    <p id="liMsg"></p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      signOut,
+      setPersistence,
+      browserLocalPersistence,
+      browserSessionPersistence
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDXmcoM0Sk3lJInvJi2mGWeXTkkOiA00ZU",
+      authDomain: "siaa-ff9f4.firebaseapp.com",
+      projectId: "siaa-ff9f4",
+      storageBucket: "siaa-ff9f4.firebasestorage.app",
+      messagingSenderId: "368180748618",
+      appId: "1:368180748618:web:eb7a6283acbb749e54e1b3",
+      measurementId: "G-3DD027B5P7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const form = document.getElementById("loginForm");
+    const msg  = document.getElementById("liMsg");
+    const rememberCheckbox = document.getElementById("liRemember");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.textContent = "";
+
+      const email    = document.getElementById("liEmail").value.trim();
+      const password = document.getElementById("liPassword").value;
+
+      try {
+        // Remember me: local storage vs session
+        const persistence = rememberCheckbox.checked
+          ? browserLocalPersistence
+          : browserSessionPersistence;
+
+        await setPersistence(auth, persistence);
+
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+
+        if (!cred.user.emailVerified) {
+          await signOut(auth);
+          msg.textContent = "Please verify your email first. Check your inbox or spam.";
+          return;
+        }
+
+        msg.style.color = "green";
+        msg.textContent = "Login successful! (Redirect to dashboard here)";
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        msg.style.color = "#e53935";
+        msg.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>
